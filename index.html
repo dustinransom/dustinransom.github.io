@@ -224,6 +224,9 @@
       <a href="https://github.com/dustinransom">GitHub</a>
       <a href="mailto:you@example.com">Email</a>
     </div>
+    <a href="https://projecteuler.net/progress=5space" target="_blank" rel="noopener" style="display: inline-block; margin-top: 20px;">
+      <img src="https://projecteuler.net/profile/5space.png" alt="5space's Project Euler progress" style="max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 2px;">
+    </a>
   </footer>
 
 </div>
@@ -245,15 +248,13 @@
   ]);
 
   // ---------------------------------------------------------------
-  // OPTIONAL "what I learned" notes per repo.
-  // Key = exact repo name as it appears on GitHub (case-sensitive).
-  // Add or edit lines here any time \u2014 no other code needs to change.
-  // Leave a repo out of this object if you don't have a note for it yet.
+  // OPTIONAL "what I learned" notes.
+  // To add one, create a file named exactly NOTE.txt in the root of
+  // that project's repo, with your note as plain text inside it.
+  // The site fetches it automatically -- no editing here required.
+  // If a repo has no NOTE.txt, that part of the entry is just skipped.
   // ---------------------------------------------------------------
-  const notes = {
-    "fizzbuzz": "First push through the full git + GitHub flow from scratch, start to finish."
-    // "nim-game": "Add a note here once it's up.",
-  };
+  const NOTE_FILENAME = "NOTE.txt";
 
   function formatMonthYear(dateStr) {
     const d = new Date(dateStr);
@@ -266,42 +267,64 @@
       .replace(/\b\w/g, c => c.toUpperCase());
   }
 
+  async function fetchNote(repo) {
+    const branch = repo.default_branch || "main";
+    const url = "https://raw.githubusercontent.com/" + GITHUB_USERNAME + "/" + repo.name + "/" + branch + "/" + NOTE_FILENAME;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return null; // no NOTE.txt in this repo -- that's fine
+      const text = await res.text();
+      return text.trim() || null;
+    } catch {
+      return null;
+    }
+  }
+
+  function renderEntry(repo, note) {
+    const title = titleCaseFromRepoName(repo.name);
+    const date = formatMonthYear(repo.created_at);
+    const description = repo.description
+      ? repo.description
+      : "No description yet -- add one in the repo's GitHub settings.";
+
+    return `
+      <div class="entry">
+        <span class="entry-date">${date}</span>
+        <h3>${title}</h3>
+        <p>${description}</p>
+        ${note ? `<div class="learned"><strong>What I learned:</strong> ${note}</div>` : ""}
+        <a class="repo-link" href="${repo.html_url}" target="_blank" rel="noopener">View on GitHub &rarr;</a>
+      </div>
+    `;
+  }
+
   async function loadLog() {
     const container = document.getElementById("log-entries");
     try {
       const res = await fetch(
-        `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=created&direction=desc&per_page=100`
+        "https://api.github.com/users/" + GITHUB_USERNAME + "/repos?sort=created&direction=desc&per_page=100"
       );
-      if (!res.ok) throw new Error(`GitHub API returned ${res.status}`);
+      if (!res.ok) throw new Error("GitHub API returned " + res.status);
       const repos = await res.json();
 
       const visible = repos.filter(r => !HIDDEN_REPOS.has(r.name.toLowerCase()));
 
       if (visible.length === 0) {
-        container.innerHTML = '<p class="log-status">Nothing here yet \u2014 check back soon.</p>';
+        container.innerHTML = '<p class="log-status">Nothing here yet -- check back soon.</p>';
         return;
       }
 
-      container.innerHTML = visible.map(repo => {
-        const title = titleCaseFromRepoName(repo.name);
-        const date = formatMonthYear(repo.created_at);
-        const description = repo.description
-          ? repo.description
-          : "No description yet \u2014 add one in the repo's GitHub settings.";
-        const note = notes[repo.name];
+      // Fetch each repo's optional NOTE.txt in parallel, then render once all are back.
+      const entries = await Promise.all(
+        visible.map(async repo => {
+          const note = await fetchNote(repo);
+          return renderEntry(repo, note);
+        })
+      );
 
-        return `
-          <div class="entry">
-            <span class="entry-date">${date}</span>
-            <h3>${title}</h3>
-            <p>${description}</p>
-            ${note ? `<div class="learned"><strong>What I learned:</strong> ${note}</div>` : ""}
-            <a class="repo-link" href="${repo.html_url}" target="_blank" rel="noopener">View on GitHub &rarr;</a>
-          </div>
-        `;
-      }).join("");
+      container.innerHTML = entries.join("");
     } catch (err) {
-      container.innerHTML = '<p class="log-status">Couldn\u2019t load projects right now \u2014 check back later.</p>';
+      container.innerHTML = '<p class="log-status">Could not load projects right now -- check back later.</p>';
       console.error(err);
     }
   }
