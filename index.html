@@ -96,7 +96,13 @@
     font-family: "Source Serif 4", Georgia, serif;
     font-weight: 600;
     font-size: 24px;
-    margin: 0 0 24px;
+    margin: 0 0 8px;
+  }
+
+  section > .section-intro {
+    color: var(--text-soft);
+    font-size: 15px;
+    margin: 0 0 32px;
   }
 
   .about p {
@@ -105,27 +111,50 @@
   }
   .about p:last-child { margin-bottom: 0; }
 
-  .project {
-    padding: 20px 0;
+  /* Feed / log entries */
+  .entry {
+    padding: 28px 0;
   }
 
-  .project + .project {
+  .entry + .entry {
     border-top: 1px solid var(--line);
   }
 
-  .project h3 {
+  .entry-date {
+    display: block;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    color: var(--text-soft);
+    margin-bottom: 6px;
+  }
+
+  .entry h3 {
     font-size: 18px;
     font-weight: 600;
-    margin: 0 0 6px;
+    margin: 0 0 8px;
   }
 
-  .project p {
+  .entry p {
     color: var(--text-soft);
     margin: 0 0 8px;
-    max-width: 55ch;
+    max-width: 56ch;
   }
 
-  .project a.repo-link {
+  .entry .learned {
+    font-size: 15px;
+    color: var(--text);
+    background: #F1F0EA;
+    border-left: 2px solid var(--accent);
+    padding: 8px 12px;
+    margin: 12px 0;
+    max-width: 54ch;
+  }
+
+  .entry .learned strong {
+    font-weight: 600;
+  }
+
+  .entry a.repo-link {
     font-size: 15px;
   }
 
@@ -157,7 +186,7 @@
 
   <header class="site">
     <nav class="site">
-      <a href="#projects">Projects</a>
+      <a href="#log">Log</a>
       <a href="#about">About</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -168,24 +197,37 @@
     <p>I'm learning to code for the fun of it, sharpening my skills project by project while I figure out where I want to take it. This is where I'm keeping a record of that.</p>
   </section>
 
-  <section id="projects">
-    <h2>Projects</h2>
+  <section id="log">
+    <h2>Log</h2>
+    <p class="section-intro">A running record of things I've built, newest first &mdash; canonical exercises, small projects, and whatever I'm learning along the way.</p>
 
-    <div class="project">
-      <h3>Project name</h3>
-      <p>One or two sentences on what it does and what you learned building it.</p>
+    <!--
+      TEMPLATE FOR A NEW ENTRY — copy this block, paste it right below this
+      comment (so it stays newest-first), and fill it in. The "learned" div
+      is optional — delete it if there's nothing worth noting yet.
+
+      <div class="entry">
+        <span class="entry-date">Month Year</span>
+        <h3>Project name</h3>
+        <p>One or two sentences on what it does.</p>
+        <div class="learned"><strong>What I learned:</strong> one line on what was new or tricky.</div>
+        <a class="repo-link" href="https://github.com/dustinransom/replace-with-repo-name">View on GitHub &rarr;</a>
+      </div>
+    -->
+
+    <div class="entry">
+      <span class="entry-date">Month Year</span>
+      <h3>Nim game</h3>
+      <p>A command-line implementation of the classic Nim strategy game.</p>
+      <div class="learned"><strong>What I learned:</strong> replace with what was new or interesting about building this.</div>
       <a class="repo-link" href="https://github.com/dustinransom/replace-with-repo-name">View on GitHub &rarr;</a>
     </div>
 
-    <div class="project">
-      <h3>Project name</h3>
-      <p>One or two sentences on what it does and what you learned building it.</p>
-      <a class="repo-link" href="https://github.com/dustinransom/replace-with-repo-name">View on GitHub &rarr;</a>
-    </div>
-
-    <div class="project">
-      <h3>Project name</h3>
-      <p>One or two sentences on what it does and what you learned building it.</p>
+    <div class="entry">
+      <span class="entry-date">Month Year</span>
+      <h3>FizzBuzz</h3>
+      <p>The classic exercise &mdash; a first step into writing small programs.</p>
+      <div class="learned"><strong>What I learned:</strong> replace with what was new or interesting about building this.</div>
       <a class="repo-link" href="https://github.com/dustinransom/replace-with-repo-name">View on GitHub &rarr;</a>
     </div>
   </section>
@@ -193,7 +235,7 @@
   <section id="about">
     <h2>About</h2>
     <div class="about">
-      <p>I'm exploring programming on my own time — partly to sharpen skills I already have, partly to see what I actually enjoy building. No fixed specialty yet, and that's fine for now.</p>
+      <p>I'm exploring programming on my own time &mdash; partly to sharpen skills I already have, partly to see what I actually enjoy building. No fixed specialty yet, and that's fine for now.</p>
       <p>This site is a running log of that exploration rather than a finished portfolio. Expect it to change as I do.</p>
     </div>
   </section>
