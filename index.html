@@ -158,6 +158,11 @@
     font-size: 15px;
   }
 
+  .log-status {
+    color: var(--text-soft);
+    font-size: 15px;
+  }
+
   footer.site {
     padding: 56px 0 72px;
     border-top: 1px solid var(--line);
@@ -199,36 +204,9 @@
 
   <section id="log">
     <h2>Log</h2>
-    <p class="section-intro">A running record of things I've built, newest first &mdash; canonical exercises, small projects, and whatever I'm learning along the way.</p>
-
-    <!--
-      TEMPLATE FOR A NEW ENTRY — copy this block, paste it right below this
-      comment (so it stays newest-first), and fill it in. The "learned" div
-      is optional — delete it if there's nothing worth noting yet.
-
-      <div class="entry">
-        <span class="entry-date">Month Year</span>
-        <h3>Project name</h3>
-        <p>One or two sentences on what it does.</p>
-        <div class="learned"><strong>What I learned:</strong> one line on what was new or tricky.</div>
-        <a class="repo-link" href="https://github.com/dustinransom/replace-with-repo-name">View on GitHub &rarr;</a>
-      </div>
-    -->
-
-    <div class="entry">
-      <span class="entry-date">Month Year</span>
-      <h3>Nim game</h3>
-      <p>A command-line implementation of the classic Nim strategy game.</p>
-      <div class="learned"><strong>What I learned:</strong> replace with what was new or interesting about building this.</div>
-      <a class="repo-link" href="https://github.com/dustinransom/replace-with-repo-name">View on GitHub &rarr;</a>
-    </div>
-
-    <div class="entry">
-      <span class="entry-date">Month Year</span>
-      <h3>FizzBuzz</h3>
-      <p>The classic exercise &mdash; a first step into writing small programs.</p>
-      <div class="learned"><strong>What I learned:</strong> replace with what was new or interesting about building this.</div>
-      <a class="repo-link" href="https://github.com/dustinransom/replace-with-repo-name">View on GitHub &rarr;</a>
+    <p class="section-intro">A running record of things I've built, pulled automatically from GitHub, newest first.</p>
+    <div id="log-entries">
+      <p class="log-status">Loading projects&hellip;</p>
     </div>
   </section>
 
@@ -249,6 +227,87 @@
   </footer>
 
 </div>
+
+<script>
+  // ---------------------------------------------------------------
+  // GitHub username the log pulls repos from.
+  // ---------------------------------------------------------------
+  const GITHUB_USERNAME = "dustinransom";
+
+  // ---------------------------------------------------------------
+  // Repos to hide from the log (the site itself, profile readme, etc).
+  // Add more repo names here (lowercase, exact match) if you want to
+  // exclude something else from ever showing up.
+  // ---------------------------------------------------------------
+  const HIDDEN_REPOS = new Set([
+    `${GITHUB_USERNAME.toLowerCase()}.github.io`,
+    GITHUB_USERNAME.toLowerCase()
+  ]);
+
+  // ---------------------------------------------------------------
+  // OPTIONAL "what I learned" notes per repo.
+  // Key = exact repo name as it appears on GitHub (case-sensitive).
+  // Add or edit lines here any time \u2014 no other code needs to change.
+  // Leave a repo out of this object if you don't have a note for it yet.
+  // ---------------------------------------------------------------
+  const notes = {
+    "fizzbuzz": "First push through the full git + GitHub flow from scratch, start to finish."
+    // "nim-game": "Add a note here once it's up.",
+  };
+
+  function formatMonthYear(dateStr) {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  }
+
+  function titleCaseFromRepoName(name) {
+    return name
+      .replace(/[-_]+/g, " ")
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  async function loadLog() {
+    const container = document.getElementById("log-entries");
+    try {
+      const res = await fetch(
+        `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=created&direction=desc&per_page=100`
+      );
+      if (!res.ok) throw new Error(`GitHub API returned ${res.status}`);
+      const repos = await res.json();
+
+      const visible = repos.filter(r => !HIDDEN_REPOS.has(r.name.toLowerCase()));
+
+      if (visible.length === 0) {
+        container.innerHTML = '<p class="log-status">Nothing here yet \u2014 check back soon.</p>';
+        return;
+      }
+
+      container.innerHTML = visible.map(repo => {
+        const title = titleCaseFromRepoName(repo.name);
+        const date = formatMonthYear(repo.created_at);
+        const description = repo.description
+          ? repo.description
+          : "No description yet \u2014 add one in the repo's GitHub settings.";
+        const note = notes[repo.name];
+
+        return `
+          <div class="entry">
+            <span class="entry-date">${date}</span>
+            <h3>${title}</h3>
+            <p>${description}</p>
+            ${note ? `<div class="learned"><strong>What I learned:</strong> ${note}</div>` : ""}
+            <a class="repo-link" href="${repo.html_url}" target="_blank" rel="noopener">View on GitHub &rarr;</a>
+          </div>
+        `;
+      }).join("");
+    } catch (err) {
+      container.innerHTML = '<p class="log-status">Couldn\u2019t load projects right now \u2014 check back later.</p>';
+      console.error(err);
+    }
+  }
+
+  loadLog();
+</script>
 
 </body>
 </html>
